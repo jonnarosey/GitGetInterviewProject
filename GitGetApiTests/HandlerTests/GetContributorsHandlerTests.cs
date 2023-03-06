@@ -3,6 +3,7 @@ using GitGetApi.Handlers;
 using GitGetApi.Queries;
 using GitGetApi.Validators;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace GitGetApiTests.HandlerTests
@@ -26,6 +27,8 @@ namespace GitGetApiTests.HandlerTests
         private IConfiguration _configuration;
 
         private Mock<GetContributorsQuery> _getContributorsQuery = new();
+
+        private Mock<ILogger<GitDataAccess>> _getContributorsLogger = new();
 
         private readonly GetContributorsQueryValidator _getContributorsQueryValidator = new();
 
@@ -51,7 +54,7 @@ namespace GitGetApiTests.HandlerTests
             _getContributorsQuery.Object.Owner = "fake-owner";
             _getContributorsQuery.Object.Repository = "e-bx_test_repo";
 
-            var dataAccess = new GitDataAccess(_configuration);
+            var dataAccess = new GitDataAccess(_configuration, _getContributorsLogger.Object);
 
             var handler = new GetContributorsHandler(dataAccess, _getContributorsQueryValidator);
 
@@ -66,7 +69,7 @@ namespace GitGetApiTests.HandlerTests
             _getContributorsQuery.Object.Owner = "jonnarosey";
             _getContributorsQuery.Object.Repository = "e-bx_test_repo";
 
-            var dataAccess = new GitDataAccess(_configuration);
+            var dataAccess = new GitDataAccess(_configuration, _getContributorsLogger.Object);
 
             var handler = new GetContributorsHandler(dataAccess, _getContributorsQueryValidator);
 
