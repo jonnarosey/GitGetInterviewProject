@@ -2,6 +2,6 @@
 {
     public interface IGitDataAccess
     {
-        List<string> GetContributors(string owner, string repository);
+        Task<MediatrResult> GetContributors(string owner, string repository);
     }
 }

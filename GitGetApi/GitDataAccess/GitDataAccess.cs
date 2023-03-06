@@ -24,7 +24,46 @@ namespace GitGetApi.GitDataAccess
             400 / 404 instead of a 500 when the repo isn't found.
         */
 
-        public List<string> GetContributors(string owner, string repository)
+        //public List<string> GetContributors(string owner, string repository)
+        //{
+        //    int numResults = _configuration.GetValue<int>("NumCommitsToPullFromGitHub");
+
+        //    string gitApiUrl = $"https://api.github.com/repos/{owner}/{repository}/commits?per_page={numResults}";
+
+        //    try
+        //    {
+        //        using (var client = new HttpClient())
+        //        {
+        //            // Add required request headers
+        //            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        //            client.DefaultRequestHeaders.UserAgent.TryParseAdd("request");
+
+        //            var response = client.GetAsync(gitApiUrl).Result;
+
+        //            if (response.IsSuccessStatusCode)
+        //            {
+        //                var gitResult = JsonConvert.DeserializeObject<dynamic>(response.Content.ReadAsStringAsync().Result);
+
+        //                foreach (var committerName in gitResult)
+        //                {
+        //                    _committerNames.Add(committerName.commit.author.name.ToString());
+        //                }
+        //            }
+        //            else
+        //            {
+        //                throw new Exception("Call to git was not successful, check owner / repository values.");
+        //            }
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        _logger.LogError("Error trying to access:{gitApiUrl}, {e.Message} {e.StackTrace}", gitApiUrl, e.Message, e.StackTrace);
+        //        throw;
+        //    }
+        //    return _committerNames;
+        //}
+
+        public async Task<MediatrResult> GetContributors(string owner, string repository)
         {
             int numResults = _configuration.GetValue<int>("NumCommitsToPullFromGitHub");
 
@@ -38,11 +77,11 @@ namespace GitGetApi.GitDataAccess
                     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.UserAgent.TryParseAdd("request");
 
-                    var response = client.GetAsync(gitApiUrl).Result;
+                    var response = await client.GetAsync(gitApiUrl);
 
                     if (response.IsSuccessStatusCode)
                     {
-                        var gitResult = JsonConvert.DeserializeObject<dynamic>(response.Content.ReadAsStringAsync().Result);
+                        var gitResult = JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync());
 
                         foreach (var committerName in gitResult)
                         {
@@ -51,16 +90,30 @@ namespace GitGetApi.GitDataAccess
                     }
                     else
                     {
-                        throw new Exception("Call to git was not successful, check owner / repository values.");
+                        return new MediatrResult
+                        {
+                            Success = false,
+                            Message = "Call to git was not successful, check owner / repository values."
+                        };
                     }
                 }
             }
             catch (Exception e)
             {
-                _logger.LogError($"Error trying to access:{gitApiUrl}, {e.Message} {e.StackTrace}");
-                throw;
+                _logger.LogError("Error trying to access:{gitApiUrl}, {e.Message} {e.StackTrace}", gitApiUrl, e.Message, e.StackTrace);
+                return new MediatrResult
+                {
+                    Success = false,
+                    Message = $"Error trying to access:{gitApiUrl}, {e.Message} {e.StackTrace}"
+                };
             }
-            return _committerNames;
+            return new MediatrResult
+            {
+                Success = true,
+                Result = _committerNames
+            };
         }
+
+        public string GetTheDayOfTheWeek() { return DateTime.Now.DayOfWeek.ToString();}
     }
 }

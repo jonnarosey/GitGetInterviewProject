@@ -23,9 +23,9 @@ namespace GitGetApi.Controllers
         {
             _logger.LogInformation("Contributors Get called with owner:{owner} and repository:{repository}", owner, repository);
 
-            var authors = _mediator.Send(new GetContributorsQuery() { Owner = owner, Repository = repository });
+            Task<MediatrResult> authors = _mediator.Send(new GetContributorsQuery() { Owner = owner, Repository = repository });
 
-            return authors.Result;
+            return (List<string>)authors.Result.Result;
         }
 
     }

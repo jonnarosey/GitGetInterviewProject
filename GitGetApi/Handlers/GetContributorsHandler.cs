@@ -5,7 +5,7 @@ using MediatR;
 
 namespace GitGetApi.Handlers
 {
-    public class GetContributorsHandler : IRequestHandler<GetContributorsQuery, List<string>>
+    public class GetContributorsHandler : IRequestHandler<GetContributorsQuery, MediatrResult>
     {
         private readonly IGitDataAccess _gitDataAccess;
 
@@ -17,11 +17,11 @@ namespace GitGetApi.Handlers
             _validator = validator;
         }
 
-        public Task<List<string>> Handle(GetContributorsQuery request, CancellationToken cancellationToken)
+        public Task<MediatrResult> Handle(GetContributorsQuery request, CancellationToken cancellationToken)
         {
             _validator.ValidateAndThrow(request);
 
-            return Task.FromResult(_gitDataAccess.GetContributors(request.Owner, request.Repository));
+            return _gitDataAccess.GetContributors(request.Owner, request.Repository);    
         }
     }
 }

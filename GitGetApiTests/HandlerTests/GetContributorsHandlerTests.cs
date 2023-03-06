@@ -1,3 +1,4 @@
+using GitGetApi;
 using GitGetApi.GitDataAccess;
 using GitGetApi.Handlers;
 using GitGetApi.Queries;
@@ -62,9 +63,88 @@ namespace GitGetApiTests.HandlerTests
             Assert.Throws<Exception>(() => handler.Handle(_getContributorsQuery.Object, default));
         }
 
+
         [Test]
-        public async Task Call_GetContributorsHandler_With_Valid_Details_Returns_Expected_Result()
+        public void Call_GetContributorsHandler_With_Invalid_Repository_Details_Throws_Exception()
         {
+            // Arrange
+            _getContributorsQuery.Object.Owner = "jonnarosey";
+            _getContributorsQuery.Object.Repository = "fake-repository";
+
+            var dataAccess = new GitDataAccess(_configuration, _getContributorsLogger.Object);
+
+            var handler = new GetContributorsHandler(dataAccess, _getContributorsQueryValidator);
+
+            // Act & Assert
+            Assert.Throws<Exception>(() => handler.Handle(_getContributorsQuery.Object, default));
+        }
+
+        [Test]
+        public void Call_GetContributorsHandler_With_Invalid_Owner_And_Repository_Details_Returns_Not_Successful()
+        {
+            // Arrange
+            _getContributorsQuery.Object.Owner = "fake-owner";
+            _getContributorsQuery.Object.Repository = "fake-repository";
+
+            var dataAccess = new GitDataAccess(_configuration, _getContributorsLogger.Object);
+
+            var handler = new GetContributorsHandler(dataAccess, _getContributorsQueryValidator);
+
+            // Act
+            var result = handler.Handle(_getContributorsQuery.Object, default);
+
+            // Assert
+            Assert.IsFalse(result.Result.Success);
+        }
+
+        [Test]
+        public void Call_GetContributorsHandler_With_No_Owner_Details_Throws_Exception()
+        {
+            // Arrange
+            _getContributorsQuery.Object.Owner = "";
+            _getContributorsQuery.Object.Repository = "e-bx_test_repo";
+
+            var dataAccess = new GitDataAccess(_configuration, _getContributorsLogger.Object);
+
+            var handler = new GetContributorsHandler(dataAccess, _getContributorsQueryValidator);
+
+            // Act & Assert
+            Assert.Throws<Exception>(() => handler.Handle(_getContributorsQuery.Object, default));
+        }
+
+        [Test]
+        public void Call_GetContributorsHandler_With_No_Repository_Details_Throws_Exception()
+        {
+            // Arrange
+            _getContributorsQuery.Object.Owner = "jonnarosey";
+            _getContributorsQuery.Object.Repository = "";
+
+            var dataAccess = new GitDataAccess(_configuration, _getContributorsLogger.Object);
+
+            var handler = new GetContributorsHandler(dataAccess, _getContributorsQueryValidator);
+
+            // Act & Assert
+            Assert.Throws<Exception>(() => handler.Handle(_getContributorsQuery.Object, default));
+        }
+
+        [Test]
+        public void Call_GetContributorsHandler_With_No_Owner_And_Repository_Details_Throws_Exception()
+        {
+            // Arrange
+            _getContributorsQuery.Object.Owner = "";
+            _getContributorsQuery.Object.Repository = "";
+
+            var dataAccess = new GitDataAccess(_configuration, _getContributorsLogger.Object);
+
+            var handler = new GetContributorsHandler(dataAccess, _getContributorsQueryValidator);
+
+            // Act & Assert
+            Assert.Throws<Exception>(() => handler.Handle(_getContributorsQuery.Object, default));
+        }
+
+        [Test]
+        public void Call_GetContributorsHandler_With_Valid_Details_Is_Successful()
+        {             
             // Arrange
             _getContributorsQuery.Object.Owner = "jonnarosey";
             _getContributorsQuery.Object.Repository = "e-bx_test_repo";
@@ -74,10 +154,12 @@ namespace GitGetApiTests.HandlerTests
             var handler = new GetContributorsHandler(dataAccess, _getContributorsQueryValidator);
 
             // Act
-            var result = await handler.Handle(_getContributorsQuery.Object, default);
+            var result = handler.Handle(_getContributorsQuery.Object, default);
 
             // Assert
-            Assert.That(result, Has.Count.EqualTo(NumCommitsToPullFromGitHub));
+            Assert.That(result, Is.Not.Null);
+            Assert.That((List<MediatrResult>)result.Result.Result, Has.Count.EqualTo(NumCommitsToPullFromGitHub));
         }
+
     }
 }
